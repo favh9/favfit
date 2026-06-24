@@ -1,0 +1,5 @@
+FavFitApi/*.http
+FavFitApi/Properties/
+FavFitApi/appsettings.*
+FavFitApi/bin/
+FavFitApi/obj/ 
