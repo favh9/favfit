@@ -1,0 +1,5 @@
+*.http
+Properties/
+appsettings.*
+bin/
+obj/
