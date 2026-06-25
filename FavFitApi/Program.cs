@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using FavFitApi.Models;
 using FavFitApi.Data;
 using Scalar.AspNetCore;
+using System.Runtime.Intrinsics.Arm;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,8 @@ if (app.Environment.IsDevelopment())
     app.MapGet("/", () => Results.Redirect("/scalar/v1"))
         .ExcludeFromDescription();
 }
+
+app.MapControllers();
 
 app.UseHttpsRedirection();
 
