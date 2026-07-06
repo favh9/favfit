@@ -1,9 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 
 namespace FavFitApi.Models;
 
-/** read only
- */
 public class UserDto
 {    
     public long? UserId {get; set;}

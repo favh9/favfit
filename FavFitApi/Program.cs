@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using FavFitApi.Models;
 using FavFitApi.Data;
 using Scalar.AspNetCore;
-using System.Runtime.Intrinsics.Arm;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +14,8 @@ builder.Services.AddOpenApi();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<FavFitdbContext>(options => options.UseNpgsql(connectionString));
+
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 var app = builder.Build();
 
@@ -35,8 +37,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
-
 app.UseHttpsRedirection();
-
 app.Run();
 

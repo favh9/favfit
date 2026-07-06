@@ -9,7 +9,7 @@ public class User
 {
     [Key]
     [Column("user_id")]
-    public long UserId {get; set;} // handled by database
+    public long UserId {get; set;}
     
     [Column("first_name")]
     public string? FirstName {get; set;}
@@ -20,14 +20,16 @@ public class User
     [Column("last_name")]
     public string? LastName {get; set;}
 
+    [Required]
     [Column("email")]
-    public string Email {get; set;} = "";
+    public string Email {get; set;} = "?";
 
+    [Required]
     [Column("password_hash")]
-    public string? PasswordHash {get; set;}
+    public string PasswordHash {get; set;} = "?";
 
     [Column("created_at")]
-    public DateTime CreatedAt {get; set;} // handled by database
+    public DateTime CreatedAt {get; set;}
 
     [Column("image_url")]
     public string? ImageUrl {get; set;}

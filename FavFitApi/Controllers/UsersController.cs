@@ -4,6 +4,9 @@ using FavFitApi.Data;
 using FavFitApi.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Identity;
+using System.IO.Pipelines;
+using System.ComponentModel;
 
 namespace FavFitApi.Controllers;
 
@@ -12,91 +15,111 @@ namespace FavFitApi.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly FavFitdbContext _context;
+    private readonly IPasswordHasher<User> _passwordHasher;
 
-    public UsersController(FavFitdbContext context)
+    public UsersController(FavFitdbContext context, IPasswordHasher<User> passwordHasher)
     {
         _context = context;
+        _passwordHasher = passwordHasher;
     }
 
     [HttpPost]
-    public async Task<ActionResult<CreateUserDto>> CreateUser([FromBody] CreateUserDto createUserDto)
+    public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var newUser = new User
-        {
-            FirstName = createUserDto.FirstName,
-            MiddleName = createUserDto.MiddleName,
-            LastName = createUserDto.LastName,
-            Email = createUserDto.Email,
-            PasswordHash = createUserDto.PasswordHash
-        };
+        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        
+        if (existingUser != null)
+            return Conflict("Email already exists.");
 
-        var userDto = new UserDto
+        var newUser = new User()
+        {
+            FirstName = request.FirstName,
+            MiddleName = request.MiddleName,
+            LastName = request.LastName,
+            Email = request.Email,
+        };
+        
+        newUser.PasswordHash = _passwordHasher.HashPassword(newUser, request.Password);
+        
+        var response = new UserDto
         {
             UserId = newUser.UserId,
-            FirstName = newUser.FirstName ?? string.Empty,
-            MiddleName = newUser.MiddleName ?? string.Empty,
-            LastName = newUser.LastName ?? string.Empty,
+            FirstName = newUser.FirstName,
+            MiddleName = newUser.MiddleName,
+            LastName = newUser.LastName,
             Email = newUser.Email,
             CreatedAt = newUser.CreatedAt,
-            ImageUrl = newUser.ImageUrl ?? string.Empty
+            ImageUrl = newUser.ImageUrl
         };
-        
-        var res = CreatedAtAction(nameof(GetUserById), new {id = userDto.UserId}, createUserDto); 
-        
+
         _context.Users.Add(newUser);
 
         await _context.SaveChangesAsync();
 
-        return res;
+        return CreatedAtAction(nameof(GetUserById), new {id = newUser.UserId}, response);    
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUserById(long id)
     {
         
-        if (id == 0)
-            return BadRequest("Enter a valid id");
-        
         var user = await _context.Users.FindAsync(id);
 
         if (user == null)
-            return NotFound($"Id {id}");
+            return NotFound($"User with ID {id} not found.");
 
-        var userDto = new UserDto
+        var response = new UserDto
         {
             UserId = user.UserId,
-            FirstName = user.FirstName ?? string.Empty,
-            MiddleName = user.MiddleName ?? string.Empty,
-            LastName = user.LastName ?? string.Empty,
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName,
+            LastName = user.LastName,
             Email = user.Email,
             CreatedAt = user.CreatedAt,
-            ImageUrl = user.ImageUrl  ?? string.Empty
+            ImageUrl = user.ImageUrl
         };
         
-        return userDto;        
+        return response;        
     }
 
     [HttpPatch]
-    public async Task<ActionResult<UserDto>> UpdateUser(UpdateUserDto updateUserDto)
+    public async Task<ActionResult> UpdateUser([FromBody] UpdateUserDto request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-
-        if (updateUserDto.UserId == 0)
-            return BadRequest("Enter a valid id");
         
-        var user = await _context.Users.FindAsync(updateUserDto.UserId);
+        var user = await _context.Users.FindAsync(request.UserId);
 
         if (user == null)
-            return NotFound($"Id {updateUserDto.UserId}");
+            return NotFound($"User with ID {request.UserId} not found.");
 
-        user.FirstName = updateUserDto.FirstName;
-        user.MiddleName = updateUserDto.MiddleName;
-        user.LastName = updateUserDto.LastName;
-        user.ImageUrl = updateUserDto.ImageUrl;
+        if (request.NewFirstName != null)
+            user.FirstName = request.NewFirstName;
+
+        if (request.NewMiddleName != null)
+            user.MiddleName = request.NewMiddleName;
+
+        if (request.NewLastName != null)
+            user.LastName = request.NewLastName;
+
+        if (request.NewImageUrl != null)
+            user.ImageUrl = request.NewImageUrl;
+
+        if (request.NewEmail != null)
+        {   
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.NewEmail);
+
+            if (existingUser != null)
+                return Conflict("Email already exists.");
+            
+            user.Email = request.NewEmail; 
+        }
+
+        if (request.NewPassword != null)
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.NewPassword);
 
         await _context.SaveChangesAsync();
 
