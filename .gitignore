@@ -1,5 +1,5 @@
 FavFitApi/*.http
 FavFitApi/Properties/
-FavFitApi/appsettings.*
+FavFitApi/appsettings.*.json
 FavFitApi/bin/
 FavFitApi/obj/ 
