@@ -3,6 +3,7 @@ using System;
 using FavFitApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FavFitApi.Migrations
 {
     [DbContext(typeof(FavFitdbContext))]
-    partial class FavFitdbContextModelSnapshot : ModelSnapshot
+    [Migration("20260707062558_InitRefreshTokenModel")]
+    partial class InitRefreshTokenModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -103,9 +106,15 @@ namespace FavFitApi.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_revoked");
+
                     b.Property<DateTime>("IssuedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("issued_at");
+                        .HasColumnName("issued_at")
+                        .HasDefaultValueSql("timezone('utc', now())");
 
                     b.Property<string>("TokenHash")
                         .IsRequired()

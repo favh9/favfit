@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using FavFitApi.Models;
-namespace FavFitApi.Data;
 
+namespace FavFitApi.Data;
 
 public partial class FavFitdbContext : DbContext
 {
@@ -18,6 +16,7 @@ public partial class FavFitdbContext : DbContext
 
     public DbSet<User> Users {get; set;}
     public DbSet<Activity> Activities {get; set;}
+    public DbSet<RefreshToken> RefreshTokens {get; set;}
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
