@@ -19,13 +19,19 @@ public partial class FavFitdbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens {get; set;}
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
+    {   
+        modelBuilder.Entity<User>()
+        .HasOne(u => u.RefreshToken)
+        .WithOne(t => t.User)
+        .HasForeignKey<RefreshToken>(t => t.UserId)
+        .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<User>()
         .Property(o => o.CreatedAt)
         .HasDefaultValueSql("timezone('utc', now())");
 
         modelBuilder.Entity<Activity>()
         .Property(o => o.CreatedAt)
-        .HasDefaultValueSql("timezone('utc', now())");
+        .HasDefaultValueSql("timezone('utc', now())");      
     }
 }

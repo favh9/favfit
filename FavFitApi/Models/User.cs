@@ -8,8 +8,13 @@ namespace FavFitApi.Models;
 public class User
 {
     [Key]
-    [Column("user_id")]
-    public long UserId {get; set;}
+    [Column("id")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public long Id {get; set;}
+
+    public RefreshToken RefreshToken {get; set;} = null!;
+    
+    public List<Activity> Activities {get;} = new List<Activity>();
     
     [Column("first_name")]
     public string? FirstName {get; set;}

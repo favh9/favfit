@@ -8,7 +8,10 @@ public class RefreshToken
 {
     [Key]
     [Column("id")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long Id {get; set;}
+
+    public User User {get; set;} = null!;
 
     [ForeignKey(nameof(User))]
     [Column("user_id")]

@@ -6,7 +6,7 @@ namespace FavFitApi.Models;
 public class UpdateUserDto
 {    
     [Required]
-    public long UserId {get; set;}
+    public long Id {get; set;}
     public string? NewFirstName {get; set;}
     
     public string? NewMiddleName {get; set;}

@@ -1,9 +1,11 @@
+using System.ComponentModel.DataAnnotations;
 using FavFitApi.Enums;
 
 namespace FavFitApi.Models;
 
 public class CreateActivityDto
 {
+    [Required]
     public long UserId {get; set;}
     public string? Title {get; set;}
 

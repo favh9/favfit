@@ -4,33 +4,34 @@ namespace FavFitApi.Models;
 public class ActivityMapper
 {
 
-    public Activity ToActivity(CreateActivityDto createActivityDto)
+    public Activity CreateActivityToActivity(CreateActivityDto request)
     {
         
         var newActivity = new Activity
         {
-            UserId = createActivityDto.UserId,
-            Title = createActivityDto.Title,
-            Type = createActivityDto.Type,
-            Date = createActivityDto.Date,
-            ElapsedTime = createActivityDto.ElapsedTime,
-            Distance = createActivityDto.Distance,
-            AverageSpeed = createActivityDto.AverageSpeed,
-            AverageCadence = createActivityDto.AverageCadence,
-            AveragePace = createActivityDto.AveragePace,
-            AverageHeartRate = createActivityDto.AverageHeartRate,
-            ElevationGain = createActivityDto.ElevationGain,
-            Calories = createActivityDto.Calories
+            UserId = request.UserId,
+            Title = request.Title,
+            Type = request.Type,
+            Date = request.Date,
+            ElapsedTime = request.ElapsedTime,
+            Distance = request.Distance,
+            AverageSpeed = request.AverageSpeed,
+            AverageCadence = request.AverageCadence,
+            AveragePace = request.AveragePace,
+            AverageHeartRate = request.AverageHeartRate,
+            ElevationGain = request.ElevationGain,
+            Calories = request.Calories
         };
 
         return newActivity;
     }
 
-    public ActivityDto ToActivityDto(Activity activity)
+    public ActivityDto AcitivtyToActivityDto(Activity activity)
     {
         
         var activityDto = new ActivityDto
-        {
+        {   
+            Id = activity.Id,
             UserId = activity.UserId,
             Title = activity.Title,
             Type = activity.Type,

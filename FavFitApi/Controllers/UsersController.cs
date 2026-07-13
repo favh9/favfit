@@ -2,11 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FavFitApi.Data;
 using FavFitApi.Models;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Identity;
-using System.IO.Pipelines;
-using System.ComponentModel;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace FavFitApi.Controllers;
 
@@ -44,9 +42,13 @@ public class UsersController : ControllerBase
         
         newUser.PasswordHash = _passwordHasher.HashPassword(newUser, request.Password);
         
+        await _context.Users.AddAsync(newUser);
+
+        await _context.SaveChangesAsync();
+
         var response = new UserDto
         {
-            UserId = newUser.UserId,
+            Id = newUser.Id,
             FirstName = newUser.FirstName,
             MiddleName = newUser.MiddleName,
             LastName = newUser.LastName,
@@ -55,86 +57,107 @@ public class UsersController : ControllerBase
             ImageUrl = newUser.ImageUrl
         };
 
-        _context.Users.Add(newUser);
-
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetUserById), new {id = newUser.UserId}, response);    
+        return CreatedAtAction(nameof(GetUserById), new {id = newUser.Id}, response);    
     }
 
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUserById(long id)
-    {
-        
-        var user = await _context.Users.FindAsync(id);
+    {  
 
-        if (user == null)
+        string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId == null)
+            return BadRequest($"Invalid ID");
+
+        var existingUser = await _context.Users.FindAsync(id);
+
+        if (existingUser == null)
             return NotFound($"User with ID {id} not found.");
+
+        if (userId != existingUser.Id.ToString())
+            return Unauthorized("Not authorized to perform that request");
 
         var response = new UserDto
         {
-            UserId = user.UserId,
-            FirstName = user.FirstName,
-            MiddleName = user.MiddleName,
-            LastName = user.LastName,
-            Email = user.Email,
-            CreatedAt = user.CreatedAt,
-            ImageUrl = user.ImageUrl
+            Id = existingUser.Id,
+            FirstName = existingUser.FirstName,
+            MiddleName = existingUser.MiddleName,
+            LastName = existingUser.LastName,
+            Email = existingUser.Email,
+            CreatedAt = existingUser.CreatedAt,
+            ImageUrl = existingUser.ImageUrl
         };
         
         return response;        
     }
 
+    [Authorize]
     [HttpPatch]
     public async Task<ActionResult> UpdateUser([FromBody] UpdateUserDto request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-        
-        var user = await _context.Users.FindAsync(request.UserId);
 
-        if (user == null)
-            return NotFound($"User with ID {request.UserId} not found.");
+        string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        if (userId == null)
+            return BadRequest($"Invalid ID");
+
+        var existingUser = await _context.Users.FindAsync(request.Id);
+
+        if (existingUser == null)
+            return NotFound($"User with ID {request.Id} not found.");
+
+        if (userId != existingUser.Id.ToString())
+            return Unauthorized("Not authorized to perform that request");
 
         if (request.NewFirstName != null)
-            user.FirstName = request.NewFirstName;
+            existingUser.FirstName = request.NewFirstName;
 
         if (request.NewMiddleName != null)
-            user.MiddleName = request.NewMiddleName;
+            existingUser.MiddleName = request.NewMiddleName;
 
         if (request.NewLastName != null)
-            user.LastName = request.NewLastName;
+            existingUser.LastName = request.NewLastName;
 
         if (request.NewImageUrl != null)
-            user.ImageUrl = request.NewImageUrl;
+            existingUser.ImageUrl = request.NewImageUrl;
 
-        if (request.NewEmail != null)
+        if (request.NewEmail != null && request.NewEmail != "")
         {   
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.NewEmail);
+            var duplicateUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.NewEmail);
 
-            if (existingUser != null)
+            if (duplicateUser != null)
                 return Conflict("Email already exists.");
             
-            user.Email = request.NewEmail; 
+            existingUser.Email = request.NewEmail; 
         }
 
-        if (request.NewPassword != null)
-            user.PasswordHash = _passwordHasher.HashPassword(user, request.NewPassword);
+        if (request.NewPassword != null && request.NewPassword != "")
+            existingUser.PasswordHash = _passwordHasher.HashPassword(existingUser, request.NewPassword);
 
         await _context.SaveChangesAsync();
 
         return NoContent();
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteUser(long id)
     {
-        var user = await _context.Users.FindAsync(id);
 
-        if (user == null)
-            return NotFound($"User with ID {id} not found.");
+        string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId == null)
+            return Unauthorized("Not authorized to perform that request");
+
+        var existingUser = await _context.Users.FindAsync(id);
+
+        if (existingUser == null || userId != existingUser.Id.ToString())
+            return Unauthorized("Not authorized to perform that request");
         
-        _context.Users.Remove(user);
+        _context.Users.Remove(existingUser);
         await _context.SaveChangesAsync();
 
         return NoContent();

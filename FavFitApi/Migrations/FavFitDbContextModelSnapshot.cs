@@ -87,6 +87,8 @@ namespace FavFitApi.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("activities");
                 });
 
@@ -118,17 +120,20 @@ namespace FavFitApi.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
                     b.ToTable("refresh_tokens");
                 });
 
             modelBuilder.Entity("FavFitApi.Models.User", b =>
                 {
-                    b.Property<long>("UserId")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasColumnName("user_id");
+                        .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("UserId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -162,9 +167,39 @@ namespace FavFitApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
-                    b.HasKey("UserId");
+                    b.HasKey("Id");
 
                     b.ToTable("users");
+                });
+
+            modelBuilder.Entity("FavFitApi.Models.Activity", b =>
+                {
+                    b.HasOne("FavFitApi.Models.User", "User")
+                        .WithMany("Activities")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FavFitApi.Models.RefreshToken", b =>
+                {
+                    b.HasOne("FavFitApi.Models.User", "User")
+                        .WithOne("RefreshToken")
+                        .HasForeignKey("FavFitApi.Models.RefreshToken", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FavFitApi.Models.User", b =>
+                {
+                    b.Navigation("Activities");
+
+                    b.Navigation("RefreshToken")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

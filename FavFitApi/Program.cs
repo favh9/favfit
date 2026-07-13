@@ -21,6 +21,7 @@ builder.Services.AddDbContext<FavFitdbContext>(options => options.UseNpgsql(conn
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<ActivityMapper>();
 
 builder.Services.AddAuthentication(options =>
     {

@@ -43,20 +43,20 @@ public class AuthController : ControllerBase
         
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email)
         };
 
         var accessToken = _tokenService.GenerateAccessToken(claims);
         var refreshToken = new RefreshToken
         {
-            UserId = user.UserId,
+            UserId = user.Id,
             TokenHash = _tokenService.HashToken(_tokenService.GenerateRefreshToken()),
             IssuedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(7)
         };
 
-        var savedRefreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(t => t.UserId.Equals(user.UserId));
+        var savedRefreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(t => t.UserId.Equals(user.Id));
 
         if (savedRefreshToken == null)
         {
